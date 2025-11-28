@@ -42,9 +42,8 @@ resource "aws_default_route_table" "main_rtb" {
   }
 }
 
-resource "aws_security_group" "my_sg" {
+resource "aws_default_security_group" "default_sg" {
   vpc_id = aws_vpc.my_vpc.id
-  name = "my-sg"
   
   ingress {
     from_port = 22
@@ -67,6 +66,6 @@ resource "aws_security_group" "my_sg" {
     prefix_list_ids = []
   }
   tags = {
-    Name = "${var.env_prefix}-sg"
+    Name = "${var.env_prefix}-sg-default"
   }
 }
