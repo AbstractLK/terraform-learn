@@ -7,6 +7,7 @@ variable "subnet_cidr_block" {}
 variable az {}
 variable "env_prefix" {}
 variable "my_ip" {}
+variable "instance_type" {}
 
 resource "aws_vpc" "my_vpc" {
   cidr_block       = var.vpc_cidr_block
@@ -67,5 +68,34 @@ resource "aws_default_security_group" "default_sg" {
   }
   tags = {
     Name = "${var.env_prefix}-sg-default"
+  }
+}
+
+data "aws_ami" "amazon-linux-image" {
+  most_recent = true
+  owners = [ "137112412989" ]
+  filter {
+    name = "name"
+    values = [ "al2023-ami-2023*-x86_64" ]
+  }
+  filter {
+    name = "virtualization-type"
+    values = [ "hvm" ]
+  }
+}
+
+output "ami_id" {
+  value = data.aws_ami.amazon-linux-image.id
+}
+
+resource "aws_instance" "my-server" {
+  ami = data.aws_ami.amazon-linux-image.id
+  instance_type = var.instance_type
+  subnet_id = aws_subnet.my_subnet_1.id
+  vpc_security_group_ids = [ aws_default_security_group.default_sg.id ]
+  associate_public_ip_address = true
+  key_name = "MyWebServer"
+  tags = {
+    Name = "${var.env_prefix}-server"
   }
 }
