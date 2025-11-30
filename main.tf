@@ -8,6 +8,7 @@ variable az {}
 variable "env_prefix" {}
 variable "my_ip" {}
 variable "instance_type" {}
+variable "public_key_path" {}
 
 resource "aws_vpc" "my_vpc" {
   cidr_block       = var.vpc_cidr_block
@@ -76,7 +77,7 @@ data "aws_ami" "amazon-linux-image" {
   owners = [ "137112412989" ]
   filter {
     name = "name"
-    values = [ "al2023-ami-2023*-x86_64" ]
+    values = [ "al2023-ami-2023*-6.1-x86_64" ]
   }
   filter {
     name = "virtualization-type"
@@ -87,15 +88,28 @@ data "aws_ami" "amazon-linux-image" {
 output "ami_id" {
   value = data.aws_ami.amazon-linux-image.id
 }
+output "public_ip" {
+  value = aws_instance.my-server.public_ip
+}
+
+resource "aws_key_pair" "ssh_key" {
+  key_name = "myKey"
+  public_key = file(var.public_key_path)
+}
 
 resource "aws_instance" "my-server" {
   ami = data.aws_ami.amazon-linux-image.id
   instance_type = var.instance_type
   subnet_id = aws_subnet.my_subnet_1.id
   vpc_security_group_ids = [ aws_default_security_group.default_sg.id ]
+  # availability_zone = var.az
   associate_public_ip_address = true
-  key_name = "MyWebServer"
+  key_name = aws_key_pair.ssh_key.key_name
   tags = {
     Name = "${var.env_prefix}-server"
   }
+  
+  # lifecycle {
+  #   ignore_changes = [ami]
+  # }
 }
