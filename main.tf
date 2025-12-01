@@ -77,7 +77,7 @@ data "aws_ami" "amazon-linux-image" {
   owners = [ "137112412989" ]
   filter {
     name = "name"
-    values = [ "al2023-ami-2023*-6.1-x86_64" ]
+    values = [ "al2023-ami-2023*-x86_64" ]
   }
   filter {
     name = "virtualization-type"
@@ -88,7 +88,7 @@ data "aws_ami" "amazon-linux-image" {
 output "ami_id" {
   value = data.aws_ami.amazon-linux-image.id
 }
-output "public_ip" {
+output "ec2_public_ip" {
   value = aws_instance.my-server.public_ip
 }
 
@@ -108,8 +108,20 @@ resource "aws_instance" "my-server" {
   tags = {
     Name = "${var.env_prefix}-server"
   }
-  
-  # lifecycle {
-  #   ignore_changes = [ami]
-  # }
+
+  user_data = file("entry-script.sh")
+
+  /* user_data = <<-EOF
+                #!/bin/bash
+                sudo yum update -y
+                sudo yum install -y docker
+                systemctl start docker
+                systemctl enable docker
+                sudo usermod -aG docker ec2-user
+                docker run -d -p 8080:80 --name webserver nginx
+              EOF */
+
+  /* lifecycle {
+    ignore_changes = [ami]
+  } */
 }
