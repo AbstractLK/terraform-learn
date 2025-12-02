@@ -2,15 +2,6 @@ provider "aws" {
   region = "ap-southeast-1"
 }
 
-variable "vpc_cidr_block" {}
-variable "subnet_cidr_block" {}
-variable az {}
-variable "env_prefix" {}
-variable "my_ip" {}
-variable "instance_type" {}
-variable "public_key_path" {}
-variable "private_key_path" {}
-
 resource "aws_vpc" "my_vpc" {
   cidr_block       = var.vpc_cidr_block
   tags = {
@@ -18,31 +9,13 @@ resource "aws_vpc" "my_vpc" {
   }
 }
 
-resource "aws_subnet" "my_subnet_1" {
-  vpc_id            = aws_vpc.my_vpc.id
-  cidr_block        = var.subnet_cidr_block
-  availability_zone = var.az
-  tags = {
-    Name = "${var.env_prefix}-subnet-1"
-  }
-}
-
-resource "aws_internet_gateway" "my_internet_gateway" {
+module "my-subnet" {
+  source = "./modules/subnet"
+  subnet_cidr_block = var.subnet_cidr_block
+  az = var.az
+  env_prefix = var.env_prefix
   vpc_id = aws_vpc.my_vpc.id
-  tags = {
-    Name = "${var.env_prefix}-igw"
-  }
-}
-
-resource "aws_default_route_table" "main_rtb" {
   default_route_table_id = aws_vpc.my_vpc.default_route_table_id
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.my_internet_gateway.id
-  }
-  tags = {
-    Name = "${var.env_prefix}-main-rtb"
-  }
 }
 
 resource "aws_default_security_group" "default_sg" {
@@ -86,13 +59,6 @@ data "aws_ami" "amazon-linux-image" {
   }
 }
 
-output "ami_id" {
-  value = data.aws_ami.amazon-linux-image.id
-}
-output "ec2_public_ip" {
-  value = aws_instance.my-server.public_ip
-}
-
 resource "aws_key_pair" "ssh_key" {
   key_name = "myKey"
   public_key = file(var.public_key_path)
@@ -101,7 +67,7 @@ resource "aws_key_pair" "ssh_key" {
 resource "aws_instance" "my-server" {
   ami = data.aws_ami.amazon-linux-image.id
   instance_type = var.instance_type
-  subnet_id = aws_subnet.my_subnet_1.id
+  subnet_id = module.my-subnet.subnet.id
   vpc_security_group_ids = [ aws_default_security_group.default_sg.id ]
   # availability_zone = var.az
   associate_public_ip_address = true
