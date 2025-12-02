@@ -7,3 +7,5 @@
 
 # variables files
 *.tfvars
+
+ec2_ip.txt
