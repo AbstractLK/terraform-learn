@@ -1,6 +1,6 @@
 output "ami_id" {
-  value = data.aws_ami.amazon-linux-image.id
+  value = module.my_server.ami.id
 }
 output "ec2_public_ip" {
-  value = aws_instance.my-server.public_ip
+  value = module.my_server.instance.public_ip
 }

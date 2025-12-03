@@ -8,4 +8,8 @@
 # variables files
 *.tfvars
 
+# Crash log files
+crash.log
+
+# instance public ip
 ec2_ip.txt
