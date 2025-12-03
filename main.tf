@@ -1,6 +1,13 @@
-provider "aws" {
-  region = "ap-southeast-1"
+terraform {
+  required_version = ">= 1.0.0"
+  backend "s3" {
+    bucket = "abstraxlk-tf-state"
+    key = "my-bucket/state.tfstate"
+    region = "ap-southeast-1"
+  }
 }
+
+provider "aws" {}
 
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
