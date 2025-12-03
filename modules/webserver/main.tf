@@ -1,4 +1,5 @@
-resource "aws_default_security_group" "default_sg" {
+resource "aws_security_group" "my_sg" {
+  name = "my_sg"
   vpc_id = var.vpc_id
   
   ingress {
@@ -22,7 +23,7 @@ resource "aws_default_security_group" "default_sg" {
     prefix_list_ids = []
   }
   tags = {
-    Name = "${var.env_prefix}-sg-default"
+    Name = "${var.env_prefix}-sg"
   }
 }
 
@@ -48,8 +49,8 @@ resource "aws_instance" "my_server" {
   ami = data.aws_ami.amazon-linux-image.id
   instance_type = var.instance_type
   subnet_id = var.subnet_id
-  vpc_security_group_ids = [ aws_default_security_group.default_sg.id ]
-  # availability_zone = var.az
+  vpc_security_group_ids = [ aws_security_group.my_sg.id ]
+  availability_zone = var.az
   associate_public_ip_address = true
   key_name = aws_key_pair.ssh_key.key_name
   tags = {

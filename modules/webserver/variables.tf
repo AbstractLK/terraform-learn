@@ -6,3 +6,4 @@ variable "public_key_path" {}
 variable "instance_type" {}
 variable "subnet_id" {}
 variable "private_key_path" {}
+variable "az" {}
